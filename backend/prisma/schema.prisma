@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  KASIR
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PromoDiscountType {
+  PERCENT
+  FIXED
+}
+
+enum PromoApplyType {
+  ALL
+  CATEGORY
+  PRODUCT
+}
+
+model Store {
+  id        Int      @id @default(autoincrement())
+  name      String
+  address   String?
+  phone     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users            User[]
+  storeStocks      StoreStock[]
+  sales            Sale[]
+  receivings       Receiving[]
+  stockAdjustments StockAdjustment[]
+  promos           Promo[]
+
+  @@map("stores")
+}
+
+model Supplier {
+  id        Int      @id @default(autoincrement())
+  name      String
+  contact   String?
+  phone     String?
+  email     String?
+  address   String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  products   Product[]
+  receivings Receiving[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id         Int           @id @default(autoincrement())
+  barcode    String        @unique
+  name       String
+  category   String
+  buyPrice   Decimal       @map("buy_price") @db.Decimal(12, 2)
+  sellPrice  Decimal       @map("sell_price") @db.Decimal(12, 2)
+  supplierId Int           @map("supplier_id")
+  status     ProductStatus @default(ACTIVE)
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  supplier         Supplier          @relation(fields: [supplierId], references: [id])
+  storeStocks      StoreStock[]
+  salesDetails     SalesDetail[]
+  receivingDetails ReceivingDetail[]
+  stockAdjustments StockAdjustment[]
+  promos           Promo[]
+
+  @@map("products")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  name      String
+  role      UserRole
+  storeId   Int?     @map("store_id")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  store Store? @relation(fields: [storeId], references: [id])
+  sales Sale[]
+
+  @@map("users")
+}
+
+model StoreStock {
+  id        Int      @id @default(autoincrement())
+  storeId   Int      @map("store_id")
+  productId Int      @map("product_id")
+  quantity  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  store   Store   @relation(fields: [storeId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([storeId, productId])
+  @@map("store_stock")
+}
+
+model Promo {
+  id            Int               @id @default(autoincrement())
+  name          String
+  code          String            @unique
+  discountType  PromoDiscountType @map("discount_type")
+  discountValue Decimal           @map("discount_value") @db.Decimal(12, 2)
+  minPurchase   Decimal           @default(0) @map("min_purchase") @db.Decimal(12, 2)
+  applyType     PromoApplyType    @default(ALL) @map("apply_type")
+  category      String?
+  productId     Int?              @map("product_id")
+  storeId       Int?              @map("store_id")
+  startDate     DateTime          @map("start_date")
+  endDate       DateTime          @map("end_date")
+  isActive      Boolean           @default(true) @map("is_active")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  product Product? @relation(fields: [productId], references: [id])
+  store   Store?   @relation(fields: [storeId], references: [id])
+  sales   Sale[]
+
+  @@map("promos")
+}
+
+model Sale {
+  id             Int      @id @default(autoincrement())
+  invoiceNumber  String   @unique @map("invoice_number")
+  storeId        Int      @map("store_id")
+  userId         Int      @map("user_id")
+  subtotal       Decimal  @default(0) @db.Decimal(12, 2)
+  discountAmount Decimal  @default(0) @map("discount_amount") @db.Decimal(12, 2)
+  promoId        Int?     @map("promo_id")
+  total          Decimal  @db.Decimal(12, 2)
+  paymentMethod  String   @map("payment_method")
+  paymentAmount  Decimal  @map("payment_amount") @db.Decimal(12, 2)
+  changeAmount   Decimal  @default(0) @map("change_amount") @db.Decimal(12, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  store        Store         @relation(fields: [storeId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  promo        Promo?        @relation(fields: [promoId], references: [id])
+  salesDetails SalesDetail[]
+
+  @@map("sales")
+}
+
+model SalesDetail {
+  id        Int     @id @default(autoincrement())
+  saleId    Int     @map("sale_id")
+  productId Int     @map("product_id")
+  quantity  Int
+  price     Decimal @db.Decimal(12, 2)
+  subtotal  Decimal @db.Decimal(12, 2)
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("sales_detail")
+}
+
+model Receiving {
+  id         Int      @id @default(autoincrement())
+  storeId    Int      @map("store_id")
+  supplierId Int      @map("supplier_id")
+  total      Decimal  @default(0) @db.Decimal(12, 2)
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  store            Store             @relation(fields: [storeId], references: [id])
+  supplier         Supplier          @relation(fields: [supplierId], references: [id])
+  receivingDetails ReceivingDetail[]
+
+  @@map("receivings")
+}
+
+model ReceivingDetail {
+  id          Int     @id @default(autoincrement())
+  receivingId Int     @map("receiving_id")
+  productId   Int     @map("product_id")
+  quantity    Int
+  price       Decimal @db.Decimal(12, 2)
+
+  receiving Receiving @relation(fields: [receivingId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@map("receiving_detail")
+}
+
+model StockAdjustment {
+  id          Int      @id @default(autoincrement())
+  storeId     Int      @map("store_id")
+  productId   Int      @map("product_id")
+  previousQty Int      @map("previous_qty")
+  physicalQty Int      @map("physical_qty")
+  difference  Int
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  store   Store   @relation(fields: [storeId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("stock_adjustments")
+}

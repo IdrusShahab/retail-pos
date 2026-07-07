@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment (jangan upload secret)
+.env
+.env.*
+
+# Build
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Uploads
+backend/uploads/
+
+# Prisma
+# migrations tetap di-commit
