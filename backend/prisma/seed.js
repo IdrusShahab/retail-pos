@@ -36,14 +36,16 @@ async function main() {
 
   console.log(`Created ${stores.length} stores`);
 
-  const adminPassword = await bcrypt.hash('admin123', 10);
+  const adminPassword = await bcrypt.hash('idrus123', 10);
   const kasirPassword = await bcrypt.hash('kasir123', 10);
 
+  await prisma.user.deleteMany({ where: { username: 'admin' } });
+
   const admin = await prisma.user.upsert({
-    where: { username: 'admin' },
-    update: {},
+    where: { username: 'adminidrus' },
+    update: { password: adminPassword },
     create: {
-      username: 'admin',
+      username: 'adminidrus',
       password: adminPassword,
       name: 'Administrator',
       role: 'ADMIN',
@@ -154,7 +156,7 @@ async function main() {
   console.log('Seed completed!');
   console.log('');
   console.log('Login credentials:');
-  console.log('  Admin: admin / admin123');
+  console.log('  Admin: adminidrus / idrus123');
   console.log('  Kasir: kasir1 / kasir123');
 }
 

@@ -63,7 +63,7 @@ echo.
 echo ========================================
 echo  Setup SELESAI!
 echo.
-echo  Login Admin: admin / admin123
+echo  Login Admin: adminidrus / idrus123
 echo  Login Kasir: kasir1 / kasir123
 echo ========================================
 pause

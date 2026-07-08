@@ -57,7 +57,7 @@ E:\Kasir\start-all.bat
 
 | Role | Username | Password |
 |------|----------|----------|
-| Admin | `admin` | `admin123` |
+| Admin | `adminidrus` | `idrus123` |
 | Kasir | `kasir1` | `kasir123` |
 
 > Ganti password default sebelum dipakai di lingkungan nyata.

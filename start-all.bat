@@ -27,7 +27,7 @@ echo ========================================
 echo  Aplikasi sedang berjalan!
 echo  Buka: http://localhost:5173
 echo.
-echo  Login Admin: admin / admin123
+echo  Login Admin: adminidrus / idrus123
 echo  Login Kasir: kasir1 / kasir123
 echo ========================================
 pause
